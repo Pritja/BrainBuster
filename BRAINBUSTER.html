@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BrainBuster - ICT Quiz</title>
+  <style>
+    :root {
+      --primary-blue: #2196f3;
+      --light-blue: #e3f2fd;
+      --dark-blue: #0d47a1;
+      --accent-blue: #64b5f6;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+      margin: 0;
+      padding: 0;
+      color: var(--dark-blue);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 3em;
+      color: var(--white);
+      margin: 20px 0;
+      text-shadow: 0 0 8px #ffffff;
+    }
+
+    .container {
+      background-color: var(--white);
+      border: 2px solid var(--accent-blue);
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 600px;
+      padding: 25px;
+      text-align: center;
+    }
+
+    input, select {
+      padding: 10px;
+      width: 80%;
+      font-size: 1em;
+      border: 1px solid var(--primary-blue);
+      border-radius: 5px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      background-color: var(--primary-blue);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: var(--dark-blue);
+    }
+
+    .card {
+      background-color: var(--light-blue);
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .option {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      background-color: #bbdefb;
+      border: none;
+      border-radius: 8px;
+      width: 80%;
+      cursor: pointer;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+
+    .option:hover {
+      transform: scale(1.05);
+      background-color: #90caf9;
+    }
+
+    .correct { background-color: #81c784 !important; }
+    .wrong { background-color: #ef9a9a !important; }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 15px;
+      background-color: #ddd;
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, var(--primary-blue), var(--accent-blue));
+      border-radius: 10px;
+      transition: width 0.4s ease-in-out;
+    }
+
+    .fixed-bottom-panels {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-evenly;
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      z-index: 10;
+    }
+
+    .panel {
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      width: 45%;
+      text-align: center;
+    }
+
+    #scoreboard {
+      margin-top: 30px;
+      background: #e1f5fe;
+      padding: 15px;
+      border-radius: 10px;
+      color: var(--dark-blue);
+      display: none;
+    }
+
+    @media screen and (max-width: 600px) {
+      h1 { font-size: 2em; }
+      .container { width: 95%; padding: 15px; }
+      input, button, .option { width: 100%; }
+      .panel { width: 45%; }
+    }
+  </style>
+</head>
+<body>
+<h1>🧠 BrainBuster</h1>
+<div class="container">
+  <input type="text" id="username" placeholder="Enter your name" />
+  <select id="category">
+    <option value="Basic ICT">Basic ICT</option>
+    <option value="Microsoft Office">Microsoft Office</option>
+  </select>
+  <select id="difficulty">
+    <option value="Easy">Easy</option>
+    <option value="Hard">Hard</option>
+  </select>
+  <button id="start" onclick="startQuiz()">Start Quiz</button>
+
+  <div class="card" id="card">
+    <div id="question" style="font-weight: bold; margin-bottom: 20px;"></div>
+    <div id="options"></div>
+    <button id="next" style="display: none;" onclick="nextQuestion()">Next</button>
+  </div>
+
+  <div class="progress-bar-container">
+    <div id="progress-bar" class="progress-bar"></div>
+  </div>
+
+  <div id="scoreboard"></div>
+</div>
+<div class="fixed-bottom-panels">
+  <div class="panel" id="player-panel">
+    <h3>Player:</h3>
+    <div id="player-name">Not Started</div>
+  </div>
+  <div class="panel" id="scoreboard-panel">
+    <h3>Your Score:</h3>
+    <div id="player-score">Not Available</div>
+  </div>
+</div>
+
+<script>
+const allQuestions = [
+  // Basic ICT Easy
+  { category: "Basic ICT", difficulty: "Easy", question: "What does CPU stand for?", options: ["Central Processing Unit", "Computer Processing Unit", "Control Program Unit", "Central Power Unit"], answer: 0 },
+  { category: "Basic ICT", difficulty: "Easy", question: "What is hardware?", options: ["Physical parts", "Software", "Applications", "Websites"], answer: 0 },
+  { category: "Basic ICT", difficulty: "Easy", question: "Which is an input device?", options: ["Monitor", "Mouse", "Speaker", "Printer"], answer: 1 },
+  { category: "Basic ICT", difficulty: "Easy", question: "What is software?", options: ["Physical part", "Programs", "Monitor", "Keyboard"], answer: 1 },
+  { category: "Basic ICT", difficulty: "Easy", question: "What stores permanent data?", options: ["RAM", "Hard Drive", "CPU", "ROM"], answer: 1 },
+  { category: "Basic ICT", difficulty: "Easy", question: "Which is a storage device?", options: ["Mouse", "Flash Drive", "Monitor", "Scanner"], answer: 1 },
+  { category: "Basic ICT", difficulty: "Easy", question: "Which is NOT hardware?", options: ["Keyboard", "Mouse", "Windows", "Monitor"], answer: 2 },
+  { category: "Basic ICT", difficulty: "Easy", question: "What does RAM stand for?", options: ["Random Access Memory", "Read Access Mode", "Read After Memory", "Rapid Access Memory"], answer: 0 },
+  { category: "Basic ICT", difficulty: "Easy", question: "Example of operating system?", options: ["MS Word", "Windows", "Google", "Internet"], answer: 1 },
+  { category: "Basic ICT", difficulty: "Easy", question: "Main function of computer?", options: ["Input", "Output", "Processing", "All of the above"], answer: 3 },
+
+  // Basic ICT Hard
+  { category: "Basic ICT", difficulty: "Hard", question: "What is BIOS?", options: ["Basic Input Output System", "Binary Integrated Operating System", "Base Internal Output System", "Basic Internet Operation Setup"], answer: 0 },
+  { category: "Basic ICT", difficulty: "Hard", question: "Which language is closest to machine code?", options: ["Assembly", "Java", "C++", "Python"], answer: 0 },
+  { category: "Basic ICT", difficulty: "Hard", question: "What is a firewall?", options: ["Antivirus", "Router", "Security system", "Software updater"], answer: 2 },
+  { category: "Basic ICT", difficulty: "Hard", question: "Purpose of cache memory?", options: ["Store files", "Temporary storage", "Fast access memory", "Backup data"], answer: 2 },
+  { category: "Basic ICT", difficulty: "Hard", question: "What is hexadecimal base?", options: ["2", "8", "10", "16"], answer: 3 },
+  { category: "Basic ICT", difficulty: "Hard", question: "What is cloud computing?", options: ["Local storage", "Remote server access", "Manual backup", "Bluetooth sync"], answer: 1 },
+  { category: "Basic ICT", difficulty: "Hard", question: "What is the function of ALU?", options: ["Arithmetic/Logic", "Storage", "Control", "Display"], answer: 0 },
+  { category: "Basic ICT", difficulty: "Hard", question: "Which is a volatile memory?", options: ["ROM", "SSD", "RAM", "HDD"], answer: 2 },
+  { category: "Basic ICT", difficulty: "Hard", question: "What is meant by latency?", options: ["Speed", "Delay", "Capacity", "Storage"], answer: 1 },
+  { category: "Basic ICT", difficulty: "Hard", question: "Which is not an OS?", options: ["Linux", "DOS", "MacOS", "Oracle"], answer: 3 },
+
+  // Microsoft Office Easy
+  { category: "Microsoft Office", difficulty: "Easy", question: "What does MS Word do?", options: ["Spreadsheet", "Text editing", "Slideshow", "Database"], answer: 1 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "What is the function of Excel?", options: ["Word processing", "Data analysis", "Graphic design", "Emailing"], answer: 1 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "What is the shortcut for saving in MS Word?", options: ["Ctrl + S", "Ctrl + C", "Ctrl + V", "Ctrl + P"], answer: 0 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "In Excel, which function adds numbers?", options: ["SUM()", "AVERAGE()", "COUNT()", "IF()"], answer: 0 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "What does PowerPoint create?", options: ["Word document", "Spreadsheet", "Presentation", "Database"], answer: 2 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "Which software is used for email?", options: ["Excel", "Outlook", "Word", "Access"], answer: 1 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "Which MS Office application is used for creating charts?", options: ["Word", "PowerPoint", "Excel", "Access"], answer: 2 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "What does the 'Home' tab in MS Word contain?", options: ["Page Layout", "Insert", "Basic tools", "View"], answer: 2 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "Which function in Excel returns the highest number?", options: ["MAX()", "MIN()", "SUM()", "COUNT()"], answer: 0 },
+  { category: "Microsoft Office", difficulty: "Easy", question: "What does MS Access store?", options: ["Data", "Graphics", "Text", "Videos"], answer: 0 },
+
+  // Microsoft Office Hard
+  { category: "Microsoft Office", difficulty: "Hard", question: "Which of these is a feature of MS Word?", options: ["Mail Merge", "Conditional Formatting", "Pivot Tables", "Data Validation"], answer: 0 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "In Excel, what is the shortcut for autosum?", options: ["Alt + =", "Ctrl + Z", "Ctrl + P", "Alt + F4"], answer: 0 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "Which function in Excel combines text?", options: ["CONCATENATE()", "IF()", "INDEX()", "VLOOKUP()"], answer: 0 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "Which is a feature of PowerPoint?", options: ["Table formatting", "Transitions", "Macros", "Grouping"], answer: 1 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "Which type of document does MS Word create?", options: [".xlsx", ".pdf", ".docx", ".pptx"], answer: 2 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "What is the default extension for an Excel file?", options: [".xls", ".xlsx", ".docx", ".pptx"], answer: 1 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "Which of the following is NOT a function in MS Excel?", options: ["SUMIF", "COUNTIF", "VLOOKUP", "CLIPART"], answer: 3 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "In PowerPoint, how do you add a new slide?", options: ["Ctrl + M", "Ctrl + S", "Ctrl + N", "Ctrl + P"], answer: 0 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "What is the function of MS Access?", options: ["Word processing", "Data management", "Spreadsheet", "Presentation"], answer: 1 },
+  { category: "Microsoft Office", difficulty: "Hard", question: "What is a Pivot Table in Excel?", options: ["Data chart", "Text editor", "Data analysis tool", "Word processor"], answer: 2 }
+];
+
+let currentQuestionIndex = 0;
+let score = 0;
+let selectedCategory = "Basic ICT";
+let selectedDifficulty = "Easy";
+
+function startQuiz() {
+  const username = document.getElementById("username").value;
+  if (!username) {
+    alert("Please enter your name!");
+    return;
+  }
+
+  document.getElementById("player-name").textContent = username;
+  document.getElementById("start").style.display = "none"; // Fixed line here
+  document.getElementById("category").style.display = "none";
+  document.getElementById("difficulty").style.display = "none";
+  document.getElementById("username").style.display = "none";
+  
+  startNewQuestion();
+}
+
+function startNewQuestion() {
+  const questions = allQuestions.filter(q => q.category === selectedCategory && q.difficulty === selectedDifficulty);
+  if (currentQuestionIndex < questions.length) {
+    const question = questions[currentQuestionIndex];
+    document.getElementById("question").textContent = question.question;
+    const optionsContainer = document.getElementById("options");
+    optionsContainer.innerHTML = "";
+    question.options.forEach((option, index) => {
+      const optionButton = document.createElement("button");
+      optionButton.className = "option";
+      optionButton.textContent = option;
+      optionButton.onclick = () => checkAnswer(index, question.answer);
+      optionsContainer.appendChild(optionButton);
+    });
+    document.getElementById("card").style.display = "block";
+    updateProgressBar();
+  } else {
+    showScoreboard();
+  }
+}
+
+function checkAnswer(selected, correct) {
+  const options = document.querySelectorAll(".option");
+  options.forEach((option, index) => {
+    option.disabled = true;
+    if (index === correct) {
+      option.classList.add("correct"); // Highlight the correct answer
+    }
+    if (index === selected && index !== correct) {
+      option.classList.add("wrong"); // Highlight the wrong selected answer
+    }
+  });
+
+  score += selected === correct ? 10 : 0;
+  document.getElementById("scoreboard-panel").textContent = `Score: ${score}`;
+
+  setTimeout(() => {
+    document.getElementById("next").style.display = "block";
+  }, 1000);
+}
+
+function nextQuestion() {
+  currentQuestionIndex++;
+  document.getElementById("next").style.display = "none";
+  startNewQuestion();
+}
+
+function updateProgressBar() {
+  const progress = (currentQuestionIndex / allQuestions.length) * 100;
+  document.getElementById("progress-bar").style.width = progress + "%";
+}
+
+function showScoreboard() {
+  document.getElementById("scoreboard").textContent = `Your final score is: ${score}`;
+  document.getElementById("scoreboard").style.display = "block";
+}
+</script>
+</body>
+</html>
